@@ -1,0 +1,49 @@
+service: serverless-puppeteer-layers
+
+provider:
+  name: aws
+  runtime: nodejs12.x
+  timeout: 300
+
+package:
+  exclude:
+    - layer/**
+    - chrome-aws-lambda/**
+    - node_modules/chrome-aws-lambda/**
+
+plugins:
+  - serverless-apigw-binary
+  - serverless-apigwy-binary
+
+custom:
+  apigwBinary:
+    types:
+      - '*/*'
+
+functions:
+  puppeteer-orchestrator:
+    handler: handlerPdf.index
+    timeout: 30
+    memorySize: 2048
+    events:
+      - http:
+          method: GET
+          path: /
+          contentHandling: CONVERT_TO_BINARY
+    layers:
+      - { Ref: ChromeLambdaLayer }
+  pdf-download:
+    handler: handlerPdf.index
+    timeout: 30
+    memorySize: 2048
+    events:
+      - http:
+          method: GET
+          path: /download
+    layers:
+      - { Ref: ChromeLambdaLayer }
+
+layers:
+  chrome:
+    package:
+      artifact: layer/chrome.zip    
